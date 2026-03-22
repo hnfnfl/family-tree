@@ -1,0 +1,16 @@
+{
+  "statements": [
+    {
+      "statement": "MATCH (p:Person {name: 'Ahmad Ashari'}) SET p.title = 'Haji', p.addressStreet = 'Jl. Tebah Raya No.2', p.addressNeighborhood = 'Kebayoran Baru', p.addressCity = 'Jakarta Selatan', p.addressProvince = 'DKI Jakarta', p.addressPostalCode = '12180', p.addressCountry = 'Indonesia', p.phonePrimary = '+6281234567890', p.phonePrimaryType = 'whatsapp', p.updatedAt = datetime() RETURN p.name, p.title, p.addressCity"
+    },
+    {
+      "statement": "MATCH (p:Person {name: 'Siti Aminah'}) SET p.title = 'Hj.', p.addressStreet = 'Jl. Tebah Raya No.2', p.addressNeighborhood = 'Kebayoran Baru', p.addressCity = 'Jakarta Selatan', p.addressProvince = 'DKI Jakarta', p.addressPostalCode = '12180', p.addressCountry = 'Indonesia', p.phonePrimary = '+6281234567891', p.phonePrimaryType = 'whatsapp', p.updatedAt = datetime() RETURN p.name, p.title"
+    },
+    {
+      "statement": "MATCH (p:Person {name: 'Hanif Ashari'}) SET p.title = 'Bc.', p.bio = 'Cloud Engineer @ SRIN', p.addressStreet = 'Jl. Tebah Raya No.2', p.addressNeighborhood = 'Kebayoran Baru', p.addressCity = 'Jakarta Selatan', p.addressProvince = 'DKI Jakarta', p.addressPostalCode = '12180', p.addressCountry = 'Indonesia', p.phonePrimary = '+6285730457714', p.phonePrimaryType = 'whatsapp', p.phoneVerified = true, p.updatedAt = datetime() RETURN p.name, p.bio"
+    },
+    {
+      "statement": "MATCH (p:Person) RETURN p.name, p.title, p.addressCity, p.phonePrimary"
+    }
+  ]
+}

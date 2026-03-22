@@ -1,0 +1,7 @@
+{
+  "statements": [
+    {
+      "statement": "MATCH (p:Person) RETURN p.name, p.title, p.addressCity, p.phonePrimary, p.bio"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "statements": [
+    {
+      "statement": "// QUERY: Get step-parent relationships\nMATCH (stepParent:Person)-[r:STEP_PARENT_OF]->(stepChild:Person) RETURN stepParent.name as stepParent, stepChild.name as stepChild, r.sinceDate as sinceDate"
+    },
+    {
+      "statement": "// QUERY: Get siblings\nMATCH (p1:Person)-[:SIBLING_OF]-(p2:Person) RETURN p1.name as sibling1, p2.name as sibling2"
+    },
+    {
+      "statement": "// QUERY: Get deceased persons\nMATCH (p:Person) WHERE p.deathDate IS NOT NULL RETURN p.name, p.birthDate, p.deathDate, p.addressCity"
+    },
+    {
+      "statement": "// QUERY: Get single parents\nMATCH (parent:Person)-[:PARENT_OF]->(child:Person) WITH child, collect(parent) as parents WHERE size(parents) = 1 RETURN child.name as childWithSingleParent, parents[0].name as singleParent, parents[0].gender as parentGender"
+    },
+    {
+      "statement": "// QUERY: Get polygamy families\nMATCH (husband:Person)-[r:MARRIED_TO {isCurrent: true}]->(wife:Person) WITH husband, collect({wife: wife.name, order: r.order, marriedSince: r.startDate}) as wives WHERE size(wives) > 1 RETURN husband.name as polygamousHusband, [w IN wives | w.wife + ' (order: ' + toString(w.order) + ')'] as wives"
+    },
+    {
+      "statement": "// QUERY: Get divorce cases\nMATCH (p1:Person)-[r:MARRIED_TO {endReason: 'divorce'}]-(p2:Person) RETURN p1.name as exSpouse1, p2.name as exSpouse2, r.startDate as marriedDate, r.endDate as divorcedDate"
+    },
+    {
+      "statement": "// QUERY: Get complete family tree\nMATCH path = (head:Person)-[:PARENT_OF*0..2]->(descendant) WHERE head.name = 'Budi Santoso' RETURN [node IN nodes(path) | node.name + ' (' + node.title + ')'] as familyTree"
+    },
+    {
+      "statement": "// STATS: Count all relationships by type\nMATCH ()-[r]->() RETURN type(r) as relationshipType, count(r) as count ORDER BY count DESC"
+    },
+    {
+      "statement": "// STATS: Count persons by city\nMATCH (p:Person) WHERE p.isDeleted = false RETURN p.addressCity as city, count(p) as personCount ORDER BY personCount DESC"
+    },
+    {
+      "statement": "// STATS: Count persons by generation\nMATCH (head:Person {name: 'Budi Santoso'})-[:PARENT_OF*0..2]->(descendant:Person) WITH size((head)-[:PARENT_OF*]->(descendant)) as gen RETURN CASE gen WHEN 0 THEN 'Gen 1 (Head)' WHEN 1 THEN 'Gen 2 (Children)' WHEN 2 THEN 'Gen 3 (Grandchildren)' END as generation, count(descendant) as count ORDER BY gen"
+    }
+  ]
+}

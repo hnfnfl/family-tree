@@ -1,0 +1,28 @@
+{
+  "statements": [
+    {
+      "statement": "// EDGE CASE 1: Divorce & Remarriage - Create ex-husband scenario\nCREATE (exWife:Person {id: randomUUID(), name: 'Rina Kartika', gender: 'female', birthDate: date('1975-05-10'), title: '', bio: 'Istri pertama (cerai)', addressStreet: 'Jl. Kenanga No.5', addressCity: 'Kediri', addressProvince: 'Jawa Timur', addressPostalCode: '64121', addressCountry: 'Indonesia', phonePrimary: '+6281234567896', phonePrimaryType: 'whatsapp', isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN exWife.name, exWife.bio"
+    },
+    {
+      "statement": "// EDGE CASE 1: Add marriage with end date (divorce)\nMATCH (exWife:Person {name: 'Rina Kartika'}) MATCH (budi:Person {name: 'Budi Santoso'}) MERGE (budi)-[:MARRIED_TO {startDate: date('1978-01-15'), endDate: date('1994-12-31'), endReason: 'divorce', isCurrent: false, order: 0}]->(exWife) RETURN budi.name, exWife.name"
+    },
+    {
+      "statement": "// EDGE CASE 2: Death & Auto-End Marriage - Create deceased spouse\nCREATE (deceased:Person {id: randomUUID(), name: 'Hasan Abdullah', gender: 'male', birthDate: date('1955-03-20'), deathDate: date('2020-06-15'), title: 'H.', bio: 'Meninggal 2020', addressStreet: 'Jl. Dahlia No.99', addressCity: 'Batu', addressProvince: 'Jawa Timur', addressPostalCode: '65314', addressCountry: 'Indonesia', phonePrimary: '+6281234567897', phonePrimaryType: 'mobile', isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN deceased.name, deceased.deathDate"
+    },
+    {
+      "statement": "// EDGE CASE 3: Step-Parent Relationship\nMATCH (stepDad:Person {name: 'Hasan Abdullah'}) MATCH (child:Person {name: 'Ahmad Fauzi'}) MERGE (stepDad)-[:STEP_PARENT_OF {sinceDate: date('1990-01-01')}]->(child) RETURN stepDad.name, child.name"
+    },
+    {
+      "statement": "// EDGE CASE 4: Sibling Relationship (same parents)\nMATCH (ahmad:Person {name: 'Ahmad Fauzi'}) MATCH (fatimah:Person {name: 'Fatimah Azzahra'}) MERGE (ahmad)-[:SIBLING_OF]->(fatimah) RETURN ahmad.name, fatimah.name"
+    },
+    {
+      "statement": "// EDGE CASE 5: Single Parent (child with only mother)\nCREATE (singleMom:Person {id: randomUUID(), name: 'Maryam Yusuf', gender: 'female', birthDate: date('1988-11-05'), title: '', bio: 'Single mother', addressStreet: 'Jl. Sakura No.12', addressCity: 'Jakarta Pusat', addressProvince: 'DKI Jakarta', addressPostalCode: '10310', addressCountry: 'Indonesia', phonePrimary: '+6281234567898', phonePrimaryType: 'whatsapp', isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN singleMom.name, singleMom.bio"
+    },
+    {
+      "statement": "// EDGE CASE 5: Add child with single parent\nCREATE (child:Person {id: randomUUID(), name: 'Yusuf Ibrahim', gender: 'male', birthDate: date('2015-08-20'), title: '', bio: 'Anak single mother', addressStreet: 'Jl. Sakura No.12', addressCity: 'Jakarta Pusat', addressProvince: 'DKI Jakarta', addressPostalCode: '10310', addressCountry: 'Indonesia', phonePrimary: '', phonePrimaryType: 'mobile', isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN child.name, child.bio"
+    },
+    {
+      "statement": "// EDGE CASE 5: Link child to single mother only\nMATCH (mom:Person {name: 'Maryam Yusuf'}) MATCH (child:Person {name: 'Yusuf Ibrahim'}) MERGE (mom)-[:PARENT_OF]->(child) RETURN mom.name, child.name"
+    }
+  ]
+}

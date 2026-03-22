@@ -1,0 +1,25 @@
+{
+  "statements": [
+    {
+      "statement": "// FAMILY 2: Keluarga Wijaya (Jakarta - Complete 4 generations)\nCREATE (patriarch:Person {id: randomUUID(), name: 'Tan Wijaya', gender: 'male', birthDate: date('1940-08-15'), title: 'Ir.', bio: 'Patriarch - Retired Engineer', addressStreet: 'Jl. Gatot Subroto No.88', addressNeighborhood: 'Kuningan', addressCity: 'Jakarta Selatan', addressProvince: 'DKI Jakarta', addressPostalCode: '12940', addressCountry: 'Indonesia', phonePrimary: '+6281111111111', phonePrimaryType: 'whatsapp', phoneVerified: true, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN patriarch.name, patriarch.title"
+    },
+    {
+      "statement": "CREATE (matriarch:Person {id: randomUUID(), name: 'Liem Sioe Lan', gender: 'female', birthDate: date('1945-03-20'), title: '', bio: 'Matriarch - Housewife', addressStreet: 'Jl. Gatot Subroto No.88', addressNeighborhood: 'Kuningan', addressCity: 'Jakarta Selatan', addressProvince: 'DKI Jakarta', addressPostalCode: '12940', addressCountry: 'Indonesia', phonePrimary: '+6281111111112', phonePrimaryType: 'whatsapp', phoneVerified: true, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN matriarch.name"
+    },
+    {
+      "statement": "CREATE (son1:Person {id: randomUUID(), name: 'Tan Ah Kwi', gender: 'male', birthDate: date('1968-11-05'), title: 'Dr.', bio: 'Anak pertama - Dokter Spesialis', addressStreet: 'Jl. Sudirman No.45', addressNeighborhood: 'Menteng', addressCity: 'Jakarta Pusat', addressProvince: 'DKI Jakarta', addressPostalCode: '10310', addressCountry: 'Indonesia', phonePrimary: '+6281111111113', phonePrimaryType: 'whatsapp', phoneVerified: true, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN son1.name, son1.title"
+    },
+    {
+      "statement": "CREATE (daughter1:Person {id: randomUUID(), name: 'Tan Mei Ling', gender: 'female', birthDate: date('1972-06-18'), title: 'MBA', bio: 'Anak kedua - Business Owner', addressStreet: 'Jl. Rasuna Said No.12', addressNeighborhood: 'Kuningan', addressCity: 'Jakarta Selatan', addressProvince: 'DKI Jakarta', addressPostalCode: '12950', addressCountry: 'Indonesia', phonePrimary: '+6281111111114', phonePrimaryType: 'whatsapp', phoneVerified: true, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN daughter1.name"
+    },
+    {
+      "statement": "CREATE (grandson1:Person {id: randomUUID(), name: 'Kevin Tan', gender: 'male', birthDate: date('1995-02-14'), title: '', bio: 'Cucu pertama - Software Engineer', addressStreet: 'Jl. HR Rasuna Said No.88', addressNeighborhood: 'Kuningan', addressCity: 'Jakarta Selatan', addressProvince: 'DKI Jakarta', addressPostalCode: '12940', addressCountry: 'Indonesia', phonePrimary: '+6281111111115', phonePrimaryType: 'whatsapp', phoneVerified: true, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN grandson1.name"
+    },
+    {
+      "statement": "CREATE (granddaughter1:Person {id: randomUUID(), name: 'Michelle Tan', gender: 'female', birthDate: date('2010-09-22'), title: '', bio: 'Cucu kedua - Student', addressStreet: 'Jl. Sudirman No.45', addressNeighborhood: 'Menteng', addressCity: 'Jakarta Pusat', addressProvince: 'DKI Jakarta', addressPostalCode: '10310', addressCountry: 'Indonesia', phonePrimary: '+6281111111116', phonePrimaryType: 'mobile', phoneVerified: false, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN granddaughter1.name"
+    },
+    {
+      "statement": "CREATE (greatgrandson1:Person {id: randomUUID(), name: 'Brandon Tan', gender: 'male', birthDate: date('2020-12-01'), title: '', bio: 'Cicit pertama', addressStreet: 'Jl. Sudirman No.45', addressNeighborhood: 'Menteng', addressCity: 'Jakarta Pusat', addressProvince: 'DKI Jakarta', addressPostalCode: '10310', addressCountry: 'Indonesia', phonePrimary: '', phonePrimaryType: '', phoneVerified: false, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN greatgrandson1.name"
+    }
+  ]
+}

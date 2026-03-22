@@ -1,0 +1,7 @@
+{
+  "statements": [
+    {
+      "statement": "MATCH (p:Person) RETURN count(p) as count"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "statements": [
+    {
+      "statement": "// VALIDATION 1: Check for circular parent (should return 0)\nMATCH (p:Person)-[:PARENT_OF*]->(p) RETURN p.name as circularPerson"
+    },
+    {
+      "statement": "// VALIDATION 2: Check child born before parent (should return 0)\nMATCH (parent:Person)-[:PARENT_OF]->(child:Person) WHERE child.birthDate < parent.birthDate + duration({years: 10}) RETURN parent.name, parent.birthDate, child.name, child.birthDate"
+    },
+    {
+      "statement": "// VALIDATION 3: Check death before birth (should return 0)\nMATCH (p:Person) WHERE p.deathDate IS NOT NULL AND p.deathDate < p.birthDate RETURN p.name, p.birthDate, p.deathDate"
+    },
+    {
+      "statement": "// VALIDATION 4: Check duplicate active marriages (should return 0)\nMATCH (p1:Person)-[r1:MARRIED_TO {isCurrent: true}]-(p2:Person)<-[r2:MARRIED_TO {isCurrent: true}]-(p1) WHERE id(r1) <> id(r2) RETURN p1.name, p2.name"
+    },
+    {
+      "statement": "// QUERY 1: Get all marriages (current + ended)\nMATCH (p1:Person)-[r:MARRIED_TO]-(p2:Person) RETURN p1.name as person1, p2.name as person2, r.startDate as marriedSince, r.endDate as endedDate, r.endReason as reason, r.isCurrent as stillMarried, r.order as marriageOrder ORDER BY r.order, r.startDate"
+    },
+    {
+      "statement": "// QUERY 2: Get family with step-parent relationships\nMATCH (stepParent:Person)-[:STEP_PARENT_OF {sinceDate: since}]->(stepChild:Person) RETURN stepParent.name as stepParent, stepChild.name as stepChild, since as sinceDate"
+    },
+    {
+      "statement": "// QUERY 3: Get siblings\nMATCH (p1:Person)-[:SIBLING_OF]-(p2:Person) RETURN p1.name as sibling1, p2.name as sibling2"
+    },
+    {
+      "statement": "// QUERY 4: Get deceased persons\nMATCH (p:Person) WHERE p.deathDate IS NOT NULL RETURN p.name, p.birthDate, p.deathDate, p.addressCity"
+    },
+    {
+      "statement": "// QUERY 5: Get single parents (only 1 parent link to their children)\nMATCH (parent:Person)-[:PARENT_OF]->(child:Person) WITH child, collect(parent) as parents WHERE size(parents) = 1 RETURN child.name as childWithSingleParent, parents[0].name as singleParent, parents[0].gender as parentGender"
+    },
+    {
+      "statement": "// QUERY 6: Get polygamy families (husband with multiple current wives)\nMATCH (husband:Person)-[r:MARRIED_TO {isCurrent: true}]->(wife:Person) WITH husband, collect({wife: wife.name, order: r.order, marriedSince: r.startDate}) as wives WHERE size(wives) > 1 RETURN husband.name as polygamousHusband, [w IN wives | w.wife + ' (order: ' + toString(w.order) + ')'] as wives"
+    },
+    {
+      "statement": "// QUERY 7: Get divorce cases\nMATCH (p1:Person)-[r:MARRIED_TO {endReason: 'divorce'}]-(p2:Person) RETURN p1.name as exSpouse1, p2.name as exSpouse2, r.startDate as marriedDate, r.endDate as divorcedDate"
+    },
+    {
+      "statement": "// QUERY 8: Get complete family tree (3 generations)\nMATCH path = (head:Person)-[:PARENT_OF*0..2]->(descendant) WHERE head.name = 'Budi Santoso' RETURN [node IN nodes(path) | node.name + ' (' + node.title + ')'] as familyTree"
+    }
+  ]
+}

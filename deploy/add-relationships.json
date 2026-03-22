@@ -1,0 +1,16 @@
+{
+  "statements": [
+    {
+      "statement": "MATCH (head:Person {name: 'Ahmad Ashari'}), (wife:Person {name: 'Siti Aminah'}) MERGE (head)-[:MARRIED_TO {startDate: date('1985-01-01'), isCurrent: true, order: 1}]->(wife) RETURN head.name, wife.name"
+    },
+    {
+      "statement": "MATCH (head:Person {name: 'Ahmad Ashari'}), (wife:Person {name: 'Siti Aminah'}), (child:Person {name: 'Hanif Ashari'}) MERGE (head)-[:PARENT_OF]->(child) MERGE (wife)-[:PARENT_OF]->(child) RETURN child.name"
+    },
+    {
+      "statement": "MATCH (p:Person) RETURN count(p) as totalPersons"
+    },
+    {
+      "statement": "MATCH ()-[r]->() RETURN type(r) as relationshipType, count(r) as count"
+    }
+  ]
+}

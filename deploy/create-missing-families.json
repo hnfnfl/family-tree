@@ -1,0 +1,43 @@
+{
+  "statements": [
+    {
+      "statement": "// FAMILY 2: Wijaya\nCREATE (f:Family {id: randomUUID(), familyName: 'Keluarga Wijaya', headOfFamilyId: '', createdAt: datetime()}) RETURN f.familyName"
+    },
+    {
+      "statement": "// FAMILY 3: Pratama\nCREATE (f:Family {id: randomUUID(), familyName: 'Keluarga Pratama', headOfFamilyId: '', createdAt: datetime()}) RETURN f.familyName"
+    },
+    {
+      "statement": "// FAMILY 4: Sutrisno\nCREATE (f:Family {id: randomUUID(), familyName: 'Keluarga Sutrisno', headOfFamilyId: '', createdAt: datetime()}) RETURN f.familyName"
+    },
+    {
+      "statement": "// FAMILY 5: Rahman\nCREATE (f:Family {id: randomUUID(), familyName: 'Keluarga Rahman', headOfFamilyId: '', createdAt: datetime()}) RETURN f.familyName"
+    },
+    {
+      "statement": "// Link Family 2 members\nMATCH (f:Family {familyName: 'Keluarga Wijaya'}) MATCH (p:Person) WHERE p.name IN ['Tan Wijaya', 'Liem Sioe Lan', 'Tan Ah Kwi', 'Tan Mei Ling', 'Kevin Tan', 'Michelle Tan', 'Brandon Tan'] MERGE (p)-[:BELONGS_TO]->(f) RETURN count(p) as linked"
+    },
+    {
+      "statement": "// Link Family 3 members\nMATCH (f:Family {familyName: 'Keluarga Pratama'}) MATCH (p:Person) WHERE p.name IN ['Rizky Pratama', 'Alya Humaira', 'Fatih Rizqi', 'Fadhil Rizqi'] MERGE (p)-[:BELONGS_TO]->(f) RETURN count(p) as linked"
+    },
+    {
+      "statement": "// Link Family 4 members\nMATCH (f:Family {familyName: 'Keluarga Sutrisno'}) MATCH (p:Person) WHERE p.name IN ['Prof. Dr. Bambang Sutrisno', 'Dr. Siti Nurhaliza', 'Andi Prasetyo', 'Dian Kusuma'] MERGE (p)-[:BELONGS_TO]->(f) RETURN count(p) as linked"
+    },
+    {
+      "statement": "// Link Family 5 members\nMATCH (f:Family {familyName: 'Keluarga Rahman'}) MATCH (p:Person) WHERE p.name IN ['H. Abdullah Rahman', 'Hj. Fatimah Said', 'H. Umar Bakri', 'H. Khalid Ibrahim', 'Aisyah Rahman'] MERGE (p)-[:BELONGS_TO]->(f) RETURN count(p) as linked"
+    },
+    {
+      "statement": "// Update headOfFamilyId for each family\nMATCH (f:Family {familyName: 'Keluarga Wijaya'}) MATCH (head:Person {name: 'Tan Wijaya'}) SET f.headOfFamilyId = head.id"
+    },
+    {
+      "statement": "MATCH (f:Family {familyName: 'Keluarga Pratama'}) MATCH (head:Person {name: 'Rizky Pratama'}) SET f.headOfFamilyId = head.id"
+    },
+    {
+      "statement": "MATCH (f:Family {familyName: 'Keluarga Sutrisno'}) MATCH (head:Person {name: 'Prof. Dr. Bambang Sutrisno'}) SET f.headOfFamilyId = head.id"
+    },
+    {
+      "statement": "MATCH (f:Family {familyName: 'Keluarga Rahman'}) MATCH (head:Person {name: 'H. Abdullah Rahman'}) SET f.headOfFamilyId = head.id"
+    },
+    {
+      "statement": "// Verify all families\nMATCH (f:Family) RETURN f.familyName, f.headOfFamilyId"
+    }
+  ]
+}

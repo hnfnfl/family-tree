@@ -1,0 +1,19 @@
+{
+  "statements": [
+    {
+      "statement": "MATCH (p:Person) RETURN count(p) as totalPersons"
+    },
+    {
+      "statement": "MATCH ()-[r]->() RETURN type(r) as relationship, count(r) as count"
+    },
+    {
+      "statement": "MATCH (p:Person) RETURN p.name, p.title, p.addressCity, p.addressProvince, p.phonePrimary, p.bio ORDER BY p.birthDate"
+    },
+    {
+      "statement": "MATCH (head:Person)-[:MARRIED_TO {isCurrent: true}]-(wife) RETURN head.name as husband, wife.name as wife, head.phonePrimary as husbandPhone, wife.phonePrimary as wifePhone"
+    },
+    {
+      "statement": "MATCH path = (head:Person)-[:PARENT_OF*0..2]->(descendant) WHERE head.name = 'Budi Santoso' RETURN [node IN nodes(path) | node.name] as treePath"
+    }
+  ]
+}

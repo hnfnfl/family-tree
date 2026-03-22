@@ -1,0 +1,28 @@
+{
+  "statements": [
+    {
+      "statement": "CREATE (f:Family {id: randomUUID(), familyName: 'Keluarga Besar Santoso', headOfFamilyId: 'ef73a202-01d5-4a40-9457-394c573eb985', createdAt: datetime()}) RETURN f.id, f.familyName"
+    },
+    {
+      "statement": "MATCH (head:Person {name: 'Budi Santoso'}), (wife1:Person {name: 'Siti Rahmah'}) MERGE (head)-[:MARRIED_TO {startDate: date('1980-06-15'), isCurrent: true, order: 1}]->(wife1) RETURN head.name, wife1.name"
+    },
+    {
+      "statement": "MATCH (head:Person {name: 'Budi Santoso'}), (wife2:Person {name: 'Aminah Zahra'}) MERGE (head)-[:MARRIED_TO {startDate: date('1995-01-20'), isCurrent: true, order: 2}]->(wife2) RETURN head.name, wife2.name"
+    },
+    {
+      "statement": "MATCH (head:Person {name: 'Budi Santoso'}), (wife1:Person {name: 'Siti Rahmah'}), (child1:Person {name: 'Ahmad Fauzi'}) MERGE (head)-[:PARENT_OF]->(child1) MERGE (wife1)-[:PARENT_OF]->(child1) RETURN child1.name"
+    },
+    {
+      "statement": "MATCH (head:Person {name: 'Budi Santoso'}), (wife1:Person {name: 'Siti Rahmah'}), (child2:Person {name: 'Fatimah Azzahra'}) MERGE (head)-[:PARENT_OF]->(child2) MERGE (wife1)-[:PARENT_OF]->(child2) RETURN child2.name"
+    },
+    {
+      "statement": "MATCH (child1:Person {name: 'Ahmad Fauzi'}), (grandchild1:Person {name: 'Umar Bakri'}) MERGE (child1)-[:PARENT_OF]->(grandchild1) RETURN grandchild1.name"
+    },
+    {
+      "statement": "MATCH (f:Family {familyName: 'Keluarga Besar Santoso'}) MATCH (p:Person) MERGE (p)-[:BELONGS_TO]->(f) RETURN count(p) as linkedPersons"
+    },
+    {
+      "statement": "MATCH (p:Person) RETURN p.name, p.title, p.addressCity, p.phonePrimary, p.bio"
+    }
+  ]
+}

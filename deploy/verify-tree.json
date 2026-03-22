@@ -1,0 +1,7 @@
+{
+  "statements": [
+    {
+      "statement": "MATCH path = (head:Person)-[*]-(relative) WHERE head.name = 'Ahmad Ashari' RETURN path"
+    }
+  ]
+}

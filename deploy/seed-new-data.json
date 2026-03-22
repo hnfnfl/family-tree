@@ -1,0 +1,22 @@
+{
+  "statements": [
+    {
+      "statement": "CREATE (head:Person {id: randomUUID(), name: 'Budi Santoso', gender: 'male', birthDate: date('1958-05-15'), title: 'H.', bio: 'Kepala Keluarga Besar Santoso', addressStreet: 'Jl. Merdeka No.45', addressNeighborhood: 'RT 05/RW 03', addressCity: 'Malang', addressProvince: 'Jawa Timur', addressPostalCode: '65151', addressCountry: 'Indonesia', phonePrimary: '+6281234567890', phonePrimaryType: 'whatsapp', phoneVerified: true, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN head.id, head.name"
+    },
+    {
+      "statement": "CREATE (wife1:Person {id: randomUUID(), name: 'Siti Rahmah', gender: 'female', birthDate: date('1962-08-20'), title: 'Hj.', bio: 'Istri pertama', addressStreet: 'Jl. Merdeka No.45', addressNeighborhood: 'RT 05/RW 03', addressCity: 'Malang', addressProvince: 'Jawa Timur', addressPostalCode: '65151', addressCountry: 'Indonesia', phonePrimary: '+6281234567891', phonePrimaryType: 'whatsapp', phoneVerified: true, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN wife1.id, wife1.name"
+    },
+    {
+      "statement": "CREATE (wife2:Person {id: randomUUID(), name: 'Aminah Zahra', gender: 'female', birthDate: date('1970-03-10'), title: '', bio: 'Istri kedua', addressStreet: 'Jl. Anggrek No.12', addressNeighborhood: 'RT 02/RW 01', addressCity: 'Batu', addressProvince: 'Jawa Timur', addressPostalCode: '65314', addressCountry: 'Indonesia', phonePrimary: '+6281234567892', phonePrimaryType: 'whatsapp', phoneVerified: false, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN wife2.id, wife2.name"
+    },
+    {
+      "statement": "CREATE (child1:Person {id: randomUUID(), name: 'Ahmad Fauzi', gender: 'male', birthDate: date('1985-12-01'), title: 'Ir.', bio: 'Anak pertama - Arsitek', addressStreet: 'Jl. Mawar No.78', addressNeighborhood: 'RT 10/RW 05', addressCity: 'Surabaya', addressProvince: 'Jawa Timur', addressPostalCode: '60119', addressCountry: 'Indonesia', phonePrimary: '+6281234567893', phonePrimaryType: 'whatsapp', phoneVerified: true, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN child1.id, child1.name"
+    },
+    {
+      "statement": "CREATE (child2:Person {id: randomUUID(), name: 'Fatimah Azzahra', gender: 'female', birthDate: date('1990-07-25'), title: 'dr.', bio: 'Anak kedua - Dokter', addressStreet: 'Jl. Melati No.33', addressNeighborhood: 'RT 08/RW 04', addressCity: 'Jakarta Selatan', addressProvince: 'DKI Jakarta', addressPostalCode: '12180', addressCountry: 'Indonesia', phonePrimary: '+6281234567894', phonePrimaryType: 'whatsapp', phoneVerified: true, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN child2.id, child2.name"
+    },
+    {
+      "statement": "CREATE (grandchild1:Person {id: randomUUID(), name: 'Umar Bakri', gender: 'male', birthDate: date('2010-04-18'), title: '', bio: 'Cucu pertama', addressStreet: 'Jl. Mawar No.78', addressNeighborhood: 'RT 10/RW 05', addressCity: 'Surabaya', addressProvince: 'Jawa Timur', addressPostalCode: '60119', addressCountry: 'Indonesia', phonePrimary: '+6281234567895', phonePrimaryType: 'mobile', phoneVerified: false, isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN grandchild1.id, grandchild1.name"
+    }
+  ]
+}

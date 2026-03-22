@@ -1,0 +1,52 @@
+{
+  "statements": [
+    {
+      "statement": "// Family 3: Pratama - Marriage\nMATCH (husband:Person {name: 'Rizky Pratama'}), (wife:Person {name: 'Alya Humaira'}) MERGE (husband)-[:MARRIED_TO {startDate: date('2018-06-15'), isCurrent: true, order: 1}]->(wife)"
+    },
+    {
+      "statement": "// Family 3: Link twins\nMATCH (father:Person {name: 'Rizky Pratama'}), (mother:Person {name: 'Alya Humaira'}), (twin1:Person {name: 'Fatih Rizqi'}) MERGE (father)-[:PARENT_OF]->(twin1) MERGE (mother)-[:PARENT_OF]->(twin1)"
+    },
+    {
+      "statement": "MATCH (father:Person {name: 'Rizky Pratama'}), (mother:Person {name: 'Alya Humaira'}), (twin2:Person {name: 'Fadhil Rizqi'}) MERGE (father)-[:PARENT_OF]->(twin2) MERGE (mother)-[:PARENT_OF]->(twin2)"
+    },
+    {
+      "statement": "// Family 3: Siblings\nMATCH (twin1:Person {name: 'Fatih Rizqi'}), (twin2:Person {name: 'Fadhil Rizqi'}) MERGE (twin1)-[:SIBLING_OF]->(twin2)"
+    },
+    {
+      "statement": "// Family 4: Sutrisno - Marriage\nMATCH (husband:Person {name: 'Prof. Dr. Bambang Sutrisno'}), (wife:Person {name: 'Dr. Siti Nurhaliza'}) MERGE (husband)-[:MARRIED_TO {startDate: date('1985-12-10'), isCurrent: true, order: 1}]->(wife)"
+    },
+    {
+      "statement": "// Family 4: Link children abroad\nMATCH (father:Person {name: 'Prof. Dr. Bambang Sutrisno'}), (mother:Person {name: 'Dr. Siti Nurhaliza'}), (son:Person {name: 'Andi Prasetyo'}) MERGE (father)-[:PARENT_OF]->(son) MERGE (mother)-[:PARENT_OF]->(son)"
+    },
+    {
+      "statement": "MATCH (father:Person {name: 'Prof. Dr. Bambang Sutrisno'}), (mother:Person {name: 'Dr. Siti Nurhaliza'}), (daughter:Person {name: 'Dian Kusuma'}) MERGE (father)-[:PARENT_OF]->(daughter) MERGE (mother)-[:PARENT_OF]->(daughter)"
+    },
+    {
+      "statement": "// Family 5: Rahman - Marriage\nMATCH (husband:Person {name: 'H. Abdullah Rahman'}), (wife:Person {name: 'Hj. Fatimah Said'}) MERGE (husband)-[:MARRIED_TO {startDate: date('1960-08-20'), isCurrent: true, order: 1}]->(wife)"
+    },
+    {
+      "statement": "// Family 5: Link all children to grandparents\nMATCH (grandfather:Person {name: 'H. Abdullah Rahman'}), (grandmother:Person {name: 'Hj. Fatimah Said'}), (uncle1:Person {name: 'H. Umar Bakri'}) MERGE (grandfather)-[:PARENT_OF]->(uncle1) MERGE (grandmother)-[:PARENT_OF]->(uncle1)"
+    },
+    {
+      "statement": "MATCH (grandfather:Person {name: 'H. Abdullah Rahman'}), (grandmother:Person {name: 'Hj. Fatimah Said'}), (uncle2:Person {name: 'H. Khalid Ibrahim'}) MERGE (grandfather)-[:PARENT_OF]->(uncle2) MERGE (grandmother)-[:PARENT_OF]->(uncle2)"
+    },
+    {
+      "statement": "MATCH (grandfather:Person {name: 'H. Abdullah Rahman'}), (grandmother:Person {name: 'Hj. Fatimah Said'}), (aunt:Person {name: 'Aisyah Rahman'}) MERGE (grandfather)-[:PARENT_OF]->(aunt) MERGE (grandmother)-[:PARENT_OF]->(aunt)"
+    },
+    {
+      "statement": "// Family 5: Siblings\nMATCH (u1:Person {name: 'H. Umar Bakri'}), (u2:Person {name: 'H. Khalid Ibrahim'}) MERGE (u1)-[:SIBLING_OF]->(u2)"
+    },
+    {
+      "statement": "MATCH (u1:Person {name: 'H. Umar Bakri'}), (aunt:Person {name: 'Aisyah Rahman'}) MERGE (u1)-[:SIBLING_OF]->(aunt)"
+    },
+    {
+      "statement": "// STATS: Count total persons\nMATCH (p:Person) WHERE p.isDeleted = false RETURN count(p) as totalPersons"
+    },
+    {
+      "statement": "// STATS: Count families\nMATCH (f:Family) RETURN count(f) as totalFamilies"
+    },
+    {
+      "statement": "// STATS: Persons by country\nMATCH (p:Person) WHERE p.isDeleted = false RETURN p.addressCountry as country, count(p) as count ORDER BY count DESC"
+    }
+  ]
+}

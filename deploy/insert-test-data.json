@@ -1,0 +1,13 @@
+{
+  "statements": [
+    {
+      "statement": "CREATE (head:Person {id: randomUUID(), name: 'Ahmad Ashari', gender: 'male', birthDate: date('1960-01-01'), bio: 'Kepala Keluarga', isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN head.id as headId, head.name"
+    },
+    {
+      "statement": "CREATE (wife:Person {id: randomUUID(), name: 'Siti Aminah', gender: 'female', birthDate: date('1965-01-01'), isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN wife.id as wifeId, wife.name"
+    },
+    {
+      "statement": "CREATE (child:Person {id: randomUUID(), name: 'Hanif Ashari', gender: 'male', birthDate: date('1995-01-01'), isDeleted: false, createdAt: datetime(), updatedAt: datetime()}) RETURN child.id as childId, child.name"
+    }
+  ]
+}

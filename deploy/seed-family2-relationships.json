@@ -1,0 +1,28 @@
+{
+  "statements": [
+    {
+      "statement": "// Family 2: Wijaya - Create family unit\nCREATE (f:Family {id: randomUUID(), familyName: 'Keluarga Wijaya', headOfFamilyId: 'tan-wijaya-uuid', createdAt: datetime()}) RETURN f.familyName"
+    },
+    {
+      "statement": "// Link marriage\nMATCH (husband:Person {name: 'Tan Wijaya'}), (wife:Person {name: 'Liem Sioe Lan'}) MERGE (husband)-[:MARRIED_TO {startDate: date('1965-05-20'), isCurrent: true, order: 1}]->(wife) RETURN husband.name, wife.name"
+    },
+    {
+      "statement": "// Link children to parents\nMATCH (father:Person {name: 'Tan Wijaya'}), (mother:Person {name: 'Liem Sioe Lan'}), (son:Person {name: 'Tan Ah Kwi'}) MERGE (father)-[:PARENT_OF]->(son) MERGE (mother)-[:PARENT_OF]->(son)"
+    },
+    {
+      "statement": "MATCH (father:Person {name: 'Tan Wijaya'}), (mother:Person {name: 'Liem Sioe Lan'}), (daughter:Person {name: 'Tan Mei Ling'}) MERGE (father)-[:PARENT_OF]->(daughter) MERGE (mother)-[:PARENT_OF]->(daughter)"
+    },
+    {
+      "statement": "// Link grandchildren\nMATCH (father:Person {name: 'Tan Ah Kwi'}), (grandson:Person {name: 'Kevin Tan'}) MERGE (father)-[:PARENT_OF]->(grandson)"
+    },
+    {
+      "statement": "MATCH (father:Person {name: 'Tan Ah Kwi'}), (granddaughter:Person {name: 'Michelle Tan'}) MERGE (father)-[:PARENT_OF]->(granddaughter)"
+    },
+    {
+      "statement": "// Link great-grandchild\nMATCH (father:Person {name: 'Kevin Tan'}), (greatgrandson:Person {name: 'Brandon Tan'}) MERGE (father)-[:PARENT_OF]->(greatgrandson)"
+    },
+    {
+      "statement": "// Link all to family\nMATCH (f:Family {familyName: 'Keluarga Wijaya'}) MATCH (p:Person) WHERE p.name IN ['Tan Wijaya', 'Liem Sioe Lan', 'Tan Ah Kwi', 'Tan Mei Ling', 'Kevin Tan', 'Michelle Tan', 'Brandon Tan'] MERGE (p)-[:BELONGS_TO]->(f) RETURN count(p) as linked"
+    }
+  ]
+}
