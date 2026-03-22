@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hnfnfl/keluarga-tree/internal/repository"
+	"github.com/hnfnfl/family-tree/internal/repository"
 )
 
 type PersonHandler struct {

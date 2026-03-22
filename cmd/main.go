@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hnfnfl/keluarga-tree/internal/config"
-	"github.com/hnfnfl/keluarga-tree/internal/handlers"
-	"github.com/hnfnfl/keluarga-tree/internal/middleware"
-	"github.com/hnfnfl/keluarga-tree/internal/repository"
+	"github.com/hnfnfl/family-tree/internal/config"
+	"github.com/hnfnfl/family-tree/internal/handlers"
+	"github.com/hnfnfl/family-tree/internal/middleware"
+	"github.com/hnfnfl/family-tree/internal/repository"
 )
 
 func main() {

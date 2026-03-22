@@ -1,4 +1,4 @@
-# 🌳 Keluarga Tree - Silsilah Keluarga API
+# 🌳 Family Tree - Silsilah Keluarga API
 
 **Backend API untuk tracking silsilah keluarga berbasis Graph Database (Neo4j)**
 
@@ -19,7 +19,7 @@
 ## 📁 Project Structure
 
 ```
-keluarga-tree/
+family-tree/
 ├── cmd/
 │   └── main.go              # Application entry point
 ├── internal/

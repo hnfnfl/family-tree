@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hnfnfl/keluarga-tree/internal/config"
+	"github.com/hnfnfl/family-tree/internal/config"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 

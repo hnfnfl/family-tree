@@ -1,4 +1,4 @@
-module github.com/hnfnfl/keluarga-tree
+module github.com/hnfnfl/family-tree
 
 go 1.23
 

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hnfnfl/keluarga-tree/internal/middleware"
+	"github.com/hnfnfl/family-tree/internal/middleware"
 )
 
 type AuthHandler struct {
