@@ -18,9 +18,6 @@ func NewNeo4jDriver(cfg config.Neo4jConfig) (neo4j.DriverWithContext, error) {
 	driver, err := neo4j.NewDriverWithContext(
 		cfg.URI,
 		auth,
-		func(config *neo4j.Config) {
-			config.DatabaseName = cfg.Database
-		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create driver: %w", err)
@@ -29,8 +26,8 @@ func NewNeo4jDriver(cfg config.Neo4jConfig) (neo4j.DriverWithContext, error) {
 	return driver, nil
 }
 
-func (r *Neo4jRepository) ExecuteQuery(ctx context.Context, query string, params map[string]interface{}) ([]map[string]interface{}, error) {
-	session := r.Driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+func (r *Neo4jRepository) ExecuteQuery(ctx context.Context, query string, database string, params map[string]interface{}) ([]map[string]interface{}, error) {
+	session := r.Driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: database})
 	defer session.Close(ctx)
 
 	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
@@ -39,14 +36,18 @@ func (r *Neo4jRepository) ExecuteQuery(ctx context.Context, query string, params
 			return nil, err
 		}
 
-		records, err := cursor.All(ctx)
-		if err != nil {
-			return nil, err
+		data := make([]map[string]interface{}, 0)
+		for cursor.Next(ctx) {
+			record := cursor.Record()
+			row := make(map[string]interface{})
+			for key, value := range record.AsMap() {
+				row[key] = value
+			}
+			data = append(data, row)
 		}
 
-		data := make([]map[string]interface{}, len(records))
-		for i, record := range records {
-			data[i] = record.AsMap()
+		if err := cursor.Err(); err != nil {
+			return nil, err
 		}
 
 		return data, nil

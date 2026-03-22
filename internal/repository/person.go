@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -169,19 +170,19 @@ func (r *PersonRepository) GetAll(ctx context.Context, limit, offset int) ([]*Pe
 			return nil, err
 		}
 
-		records, err := cursor.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		persons := make([]*Person, len(records))
-		for i, record := range records {
+		persons := make([]*Person, 0)
+		for cursor.Next(ctx) {
+			record := cursor.Record()
 			node := record.AsMap()["p"].(neo4j.Node)
 			person, err := nodeToPerson(node)
 			if err != nil {
 				return nil, err
 			}
-			persons[i] = person
+			persons = append(persons, person)
+		}
+
+		if err := cursor.Err(); err != nil {
+			return nil, err
 		}
 
 		return persons, nil
@@ -192,6 +193,188 @@ func (r *PersonRepository) GetAll(ctx context.Context, limit, offset int) ([]*Pe
 	}
 
 	return results.([]*Person), nil
+}
+
+func (r *PersonRepository) Update(ctx context.Context, id string, updates *Person) (*Person, error) {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+
+	query := `
+		MATCH (p:Person {id: $id})
+		WHERE p.isDeleted = false
+		SET p.name = COALESCE($name, p.name),
+			p.gender = COALESCE($gender, p.gender),
+			p.birthDate = CASE WHEN $birthDate IS NOT NULL THEN date($birthDate) ELSE p.birthDate END,
+			p.deathDate = CASE WHEN $deathDate IS NOT NULL THEN date($deathDate) ELSE p.deathDate END,
+			p.title = COALESCE($title, p.title),
+			p.bio = COALESCE($bio, p.bio),
+			p.addressStreet = COALESCE($addressStreet, p.addressStreet),
+			p.addressCity = COALESCE($addressCity, p.addressCity),
+			p.addressProvince = COALESCE($addressProvince, p.addressProvince),
+			p.addressCountry = COALESCE($addressCountry, p.addressCountry),
+			p.phonePrimary = COALESCE($phonePrimary, p.phonePrimary),
+			p.phonePrimaryType = COALESCE($phonePrimaryType, p.phonePrimaryType),
+			p.updatedAt = datetime()
+		RETURN p
+	`
+
+	params := map[string]interface{}{
+		"id":                  id,
+		"name":                updates.Name,
+		"gender":              updates.Gender,
+		"birthDate":           updates.BirthDate,
+		"deathDate":           updates.DeathDate,
+		"title":               updates.Title,
+		"bio":                 updates.Bio,
+		"addressStreet":       updates.AddressStreet,
+		"addressCity":         updates.AddressCity,
+		"addressProvince":     updates.AddressProvince,
+		"addressCountry":      updates.AddressCountry,
+		"phonePrimary":        updates.PhonePrimary,
+		"phonePrimaryType":    updates.PhonePrimaryType,
+	}
+
+	result, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		cursor, err := tx.Run(ctx, query, params)
+		if err != nil {
+			return nil, err
+		}
+
+		record, err := cursor.Single(ctx)
+		if err != nil {
+			return nil, errors.New("person not found")
+		}
+
+		node := record.AsMap()["p"].(neo4j.Node)
+		return nodeToPerson(node)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result.(*Person), nil
+}
+
+func (r *PersonRepository) Delete(ctx context.Context, id string) error {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+
+	// Soft delete - set isDeleted = true
+	query := `
+		MATCH (p:Person {id: $id})
+		WHERE p.isDeleted = false
+		SET p.isDeleted = true, p.updatedAt = datetime()
+	`
+
+	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		cursor, err := tx.Run(ctx, query, map[string]interface{}{"id": id})
+		if err != nil {
+			return nil, err
+		}
+		return cursor.Consume(ctx)
+	})
+
+	return err
+}
+
+func (r *PersonRepository) Search(ctx context.Context, query string, limit int) ([]*Person, error) {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+
+	// Search by name (case-insensitive)
+	searchQuery := `
+		MATCH (p:Person)
+		WHERE p.isDeleted = false
+		AND toLower(p.name) CONTAINS toLower($query)
+		RETURN p
+		ORDER BY p.name
+		LIMIT $limit
+	`
+
+	results, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		cursor, err := tx.Run(ctx, searchQuery, map[string]interface{}{
+			"query": query,
+			"limit": limit,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		persons := make([]*Person, 0)
+		for cursor.Next(ctx) {
+			record := cursor.Record()
+			node := record.AsMap()["p"].(neo4j.Node)
+			person, err := nodeToPerson(node)
+			if err != nil {
+				return nil, err
+			}
+			persons = append(persons, person)
+		}
+
+		if err := cursor.Err(); err != nil {
+			return nil, err
+		}
+
+		return persons, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return results.([]*Person), nil
+}
+
+func (r *PersonRepository) AddRelationship(ctx context.Context, personID, targetPersonID, relationshipType string) error {
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	defer session.Close(ctx)
+
+	// Determine the reverse relationship
+	reverseRelationship := getReverseRelationship(relationshipType)
+
+	query := `
+		MATCH (p:Person {id: $personId})
+		MATCH (t:Person {id: $targetId})
+		WHERE p.isDeleted = false AND t.isDeleted = false
+		CREATE (p)-[r:` + relationshipType + ` {createdAt: datetime()}]->(t)
+		WITH p, t
+		MATCH (p)-[rel:` + relationshipType + `]->(t)
+		WITH p, t
+		CREATE (t)-[r2:` + reverseRelationship + ` {createdAt: datetime()}]->(p)
+		RETURN count(r) + count(r2) as relationshipsCreated
+	`
+
+	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+		cursor, err := tx.Run(ctx, query, map[string]interface{}{
+			"personId":   personID,
+			"targetId":   targetPersonID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return cursor.Consume(ctx)
+	})
+
+	return err
+}
+
+func getReverseRelationship(relationship string) string {
+	reverseMap := map[string]string{
+		"PARENT_OF":   "CHILD_OF",
+		"CHILD_OF":    "PARENT_OF",
+		"SPOUSE_OF":   "SPOUSE_OF",
+		"SIBLING_OF":  "SIBLING_OF",
+		"PARTNER_OF":  "PARTNER_OF",
+		"ADOPTED_BY":  "ADOPT_PARENT",
+		"STEP_PARENT": "STEP_CHILD",
+		"STEP_CHILD":  "STEP_PARENT",
+	}
+
+	if reverse, ok := reverseMap[relationship]; ok {
+		return reverse
+	}
+	return relationship
 }
 
 func nodeToPerson(node neo4j.Node) (*Person, error) {

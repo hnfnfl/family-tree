@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -28,7 +28,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create Neo4j driver: %v", err)
 	}
-	defer driver.Close()
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		driver.Close(ctx)
+	}()
 
 	// Verify connection
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

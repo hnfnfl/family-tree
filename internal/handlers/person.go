@@ -67,11 +67,40 @@ func (h *PersonHandler) Create(c *gin.Context) {
 }
 
 func (h *PersonHandler) Update(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "Not implemented yet"})
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Person ID is required"})
+		return
+	}
+
+	var updates repository.Person
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	updated, err := h.repo.Update(c.Request.Context(), id, &updates)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": updated})
 }
 
 func (h *PersonHandler) Delete(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "Not implemented yet"})
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Person ID is required"})
+		return
+	}
+
+	if err := h.repo.Delete(c.Request.Context(), id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Person deleted successfully"})
 }
 
 func (h *PersonHandler) Search(c *gin.Context) {
@@ -81,10 +110,68 @@ func (h *PersonHandler) Search(c *gin.Context) {
 		return
 	}
 
-	// TODO: Implement search in repository
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "Not implemented yet"})
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+
+	persons, err := h.repo.Search(c.Request.Context(), query, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":  persons,
+		"query": query,
+		"total": len(persons),
+	})
+}
+
+type AddRelationshipRequest struct {
+	TargetPersonID string `json:"target_person_id" binding:"required"`
+	Relationship   string `json:"relationship" binding:"required"`
 }
 
 func (h *PersonHandler) AddRelationship(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "Not implemented yet"})
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Person ID is required"})
+		return
+	}
+
+	var req AddRelationshipRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validate relationship type
+	validRelationships := map[string]bool{
+		"PARENT_OF":    true,
+		"CHILD_OF":     true,
+		"SPOUSE_OF":    true,
+		"SIBLING_OF":   true,
+		"PARTNER_OF":   true,
+		"ADOPTED_BY":   true,
+		"STEP_PARENT":  true,
+		"STEP_CHILD":   true,
+	}
+
+	if !validRelationships[req.Relationship] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid relationship type",
+			"valid": []string{"PARENT_OF", "CHILD_OF", "SPOUSE_OF", "SIBLING_OF", "PARTNER_OF", "ADOPTED_BY", "STEP_PARENT", "STEP_CHILD"},
+		})
+		return
+	}
+
+	if err := h.repo.AddRelationship(c.Request.Context(), id, req.TargetPersonID, req.Relationship); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":          "Relationship added successfully",
+		"person_id":        id,
+		"target_person_id": req.TargetPersonID,
+		"relationship":     req.Relationship,
+	})
 }
