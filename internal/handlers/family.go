@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -51,19 +52,29 @@ func (h *FamilyHandler) GetByID(c *gin.Context) {
 }
 
 func (h *FamilyHandler) Create(c *gin.Context) {
-	userID, _ := c.Get("user_id")
-	if userID == "" {
+	userID, exists := c.Get("user_id")
+	if !exists || userID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
 
-	var family repository.Family
-	if err := c.ShouldBindJSON(&family); err != nil {
+	type CreateFamilyRequest struct {
+		Name        string  `json:"name" binding:"required"`
+		Description *string `json:"description,omitempty"`
+	}
+
+	var req CreateFamilyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	created, err := h.repo.Create(c.Request.Context(), &family, userID.(string))
+	family := repository.Family{
+		Name:        req.Name,
+		Description: req.Description,
+	}
+
+	created, err := h.repo.Create(c.Request.Context(), &family, fmt.Sprintf("%v", userID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

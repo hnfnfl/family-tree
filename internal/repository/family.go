@@ -11,7 +11,7 @@ import (
 
 type Family struct {
 	ID          string    `json:"id"`
-	Name        string    `json:"name"`
+	Name        string    `json:"name" binding:"required"`
 	Description *string   `json:"description,omitempty"`
 	CreatedBy   string    `json:"created_by"`
 	CreatedAt   time.Time `json:"created_at"`
@@ -19,30 +19,30 @@ type Family struct {
 }
 
 type FamilyTree struct {
-	Family      *Family          `json:"family"`
-	Members     []*Person        `json:"members"`
+	Family        *Family        `json:"family"`
+	Members       []*Person      `json:"members"`
 	Relationships []Relationship `json:"relationships"`
 }
 
 type Relationship struct {
-	FromPersonID   string    `json:"from_person_id"`
-	FromPersonName string    `json:"from_person_name"`
-	ToPersonID     string    `json:"to_person_id"`
-	ToPersonName   string    `json:"to_person_name"`
-	Type           string    `json:"type"`
-	CreatedAt      time.Time `json:"created_at"`
+	FromPersonID   string `json:"from_person_id"`
+	FromPersonName string `json:"from_person_name"`
+	ToPersonID     string `json:"to_person_id"`
+	ToPersonName   string `json:"to_person_name"`
+	Type           string `json:"type"`
 }
 
 type FamilyRepository struct {
-	driver neo4j.DriverWithContext
+	driver   neo4j.DriverWithContext
+	database string
 }
 
 func NewFamilyRepository(driver neo4j.DriverWithContext) *FamilyRepository {
-	return &FamilyRepository{driver: driver}
+	return &FamilyRepository{driver: driver, database: "neo4j"}
 }
 
 func (r *FamilyRepository) Create(ctx context.Context, family *Family, createdBy string) (*Family, error) {
-	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: r.database})
 	defer session.Close(ctx)
 
 	family.ID = uuid.New().String()
@@ -65,7 +65,7 @@ func (r *FamilyRepository) Create(ctx context.Context, family *Family, createdBy
 	params := map[string]interface{}{
 		"id":          family.ID,
 		"name":        family.Name,
-		"description": family.Description,
+		"description": nilString(family.Description),
 		"createdBy":   createdBy,
 		"createdAt":   family.CreatedAt.Format(time.RFC3339),
 		"updatedAt":   family.UpdatedAt.Format(time.RFC3339),
@@ -94,7 +94,7 @@ func (r *FamilyRepository) Create(ctx context.Context, family *Family, createdBy
 }
 
 func (r *FamilyRepository) GetByID(ctx context.Context, id string) (*Family, error) {
-	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: r.database})
 	defer session.Close(ctx)
 
 	query := `
@@ -125,7 +125,7 @@ func (r *FamilyRepository) GetByID(ctx context.Context, id string) (*Family, err
 }
 
 func (r *FamilyRepository) GetAll(ctx context.Context, limit, offset int) ([]*Family, error) {
-	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: r.database})
 	defer session.Close(ctx)
 
 	query := `
@@ -170,7 +170,7 @@ func (r *FamilyRepository) GetAll(ctx context.Context, limit, offset int) ([]*Fa
 }
 
 func (r *FamilyRepository) Update(ctx context.Context, id string, updates *Family) (*Family, error) {
-	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: r.database})
 	defer session.Close(ctx)
 
 	query := `
@@ -184,7 +184,7 @@ func (r *FamilyRepository) Update(ctx context.Context, id string, updates *Famil
 	params := map[string]interface{}{
 		"id":          id,
 		"name":        updates.Name,
-		"description": updates.Description,
+		"description": nilString(updates.Description),
 	}
 
 	result, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
@@ -210,81 +210,108 @@ func (r *FamilyRepository) Update(ctx context.Context, id string, updates *Famil
 }
 
 func (r *FamilyRepository) GetFamilyTree(ctx context.Context, familyID string) (*FamilyTree, error) {
-	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: r.database})
 	defer session.Close(ctx)
 
-	// Get family
-	family, err := r.GetByID(ctx, familyID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get all members and relationships in one query
+	// Single query: get family + all its members + their relationships
 	query := `
-		MATCH (f:Family {id: $familyId})<-[:BELONGS_TO]-(p:Person)
+		MATCH (f:Family {id: $familyId})
+		OPTIONAL MATCH (p:Person)-[:BELONGS_TO]->(f)
 		WHERE p.isDeleted = false
-		OPTIONAL MATCH (p)-[r]-(related:Person)
+		OPTIONAL MATCH (p)-[r]->(related:Person)
 		WHERE related.isDeleted = false
-		RETURN p, r, related
+			AND type(r) <> 'BELONGS_TO'
+		RETURN f, p, r, related
 	`
 
-	results, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
 		cursor, err := tx.Run(ctx, query, map[string]interface{}{"familyId": familyID})
 		if err != nil {
 			return nil, err
 		}
 
+		var family *Family
 		members := make([]*Person, 0)
 		relationships := make([]Relationship, 0)
 		seenMembers := make(map[string]bool)
+		seenRels := make(map[string]bool)
 
 		for cursor.Next(ctx) {
 			record := cursor.Record()
-			
-			// Add person
-			pNode := record.AsMap()["p"].(neo4j.Node)
+			m := record.AsMap()
+
+			// Parse family (only once)
+			if family == nil {
+				if fNode, ok := m["f"].(neo4j.Node); ok {
+					family, err = nodeToFamily(fNode)
+					if err != nil {
+						return nil, err
+					}
+				}
+			}
+
+			// Parse person (may be nil if family has no members)
+			pVal := m["p"]
+			if pVal == nil {
+				continue
+			}
+			pNode, ok := pVal.(neo4j.Node)
+			if !ok {
+				continue
+			}
 			person, err := nodeToPerson(pNode)
 			if err != nil {
 				continue
 			}
-
 			if !seenMembers[person.ID] {
 				members = append(members, person)
 				seenMembers[person.ID] = true
 			}
 
-			// Add relationship if exists
-			rRel := record.AsMap()["r"]
-			if rRel != nil {
-				if rel, ok := rRel.(neo4j.Relationship); ok {
-					// Get related person
-					relatedNode := record.AsMap()["related"].(neo4j.Node)
-					relatedPerson, err := nodeToPerson(relatedNode)
-					if err != nil {
-						continue
-					}
+			// Parse relationship (optional)
+			rVal := m["r"]
+			relatedVal := m["related"]
+			if rVal == nil || relatedVal == nil {
+				continue
+			}
+			rel, ok := rVal.(neo4j.Relationship)
+			if !ok {
+				continue
+			}
+			relatedNode, ok := relatedVal.(neo4j.Node)
+			if !ok {
+				continue
+			}
+			relatedPerson, err := nodeToPerson(relatedNode)
+			if err != nil {
+				continue
+			}
 
-					// Get relationship type
-					relType := rel.Type
-					if len(relType) > 0 && relType[0] == ':' {
-						relType = relType[1:]
-					}
-
-					relationships = append(relationships, Relationship{
-						FromPersonID:   person.ID,
-						FromPersonName: person.Name,
-						ToPersonID:     relatedPerson.ID,
-						ToPersonName:   relatedPerson.Name,
-						Type:           relType,
-						CreatedAt:      time.Now(),
-					})
-				}
+			// Deduplicate relationships
+			relKey := person.ID + ":" + rel.Type + ":" + relatedPerson.ID
+			if !seenRels[relKey] {
+				seenRels[relKey] = true
+				relationships = append(relationships, Relationship{
+					FromPersonID:   person.ID,
+					FromPersonName: person.Name,
+					ToPersonID:     relatedPerson.ID,
+					ToPersonName:   relatedPerson.Name,
+					Type:           rel.Type,
+				})
 			}
 		}
 
+		if err := cursor.Err(); err != nil {
+			return nil, err
+		}
+
+		if family == nil {
+			return nil, errors.New("family not found")
+		}
+
 		return &FamilyTree{
-			Family:      family,
-			Members:     members,
+			Family:        family,
+			Members:       members,
 			Relationships: relationships,
 		}, nil
 	})
@@ -293,11 +320,11 @@ func (r *FamilyRepository) GetFamilyTree(ctx context.Context, familyID string) (
 		return nil, err
 	}
 
-	return results.(*FamilyTree), nil
+	return result.(*FamilyTree), nil
 }
 
 func (r *FamilyRepository) AddMember(ctx context.Context, familyID, personID string) error {
-	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: "neo4j"})
+	session := r.driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: r.database})
 	defer session.Close(ctx)
 
 	query := `
@@ -305,9 +332,10 @@ func (r *FamilyRepository) AddMember(ctx context.Context, familyID, personID str
 		MATCH (p:Person {id: $personId})
 		WHERE p.isDeleted = false
 		MERGE (p)-[:BELONGS_TO]->(f)
+		RETURN f.id
 	`
 
-	_, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
+	result, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (interface{}, error) {
 		cursor, err := tx.Run(ctx, query, map[string]interface{}{
 			"familyId": familyID,
 			"personId": personID,
@@ -315,15 +343,22 @@ func (r *FamilyRepository) AddMember(ctx context.Context, familyID, personID str
 		if err != nil {
 			return nil, err
 		}
-		return cursor.Consume(ctx)
+		record, err := cursor.Single(ctx)
+		if err != nil {
+			return nil, errors.New("family or person not found")
+		}
+		return record, nil
 	})
 
-	return err
+	if err != nil {
+		return err
+	}
+	_ = result
+	return nil
 }
 
 func nodeToFamily(node neo4j.Node) (*Family, error) {
 	props := node.Props
-	family := &Family{}
 
 	getString := func(key string) string {
 		if v, ok := props[key].(string); ok {
@@ -339,10 +374,10 @@ func nodeToFamily(node neo4j.Node) (*Family, error) {
 		return nil
 	}
 
-	family.ID = getString("id")
-	family.Name = getString("name")
-	family.Description = getOptionalString("description")
-	family.CreatedBy = getString("createdBy")
-
-	return family, nil
+	return &Family{
+		ID:          getString("id"),
+		Name:        getString("name"),
+		Description: getOptionalString("description"),
+		CreatedBy:   getString("createdBy"),
+	}, nil
 }
