@@ -14,9 +14,13 @@ import (
 	"github.com/hnfnfl/family-tree/internal/handlers"
 	"github.com/hnfnfl/family-tree/internal/middleware"
 	"github.com/hnfnfl/family-tree/internal/repository"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file (optional - won't fail if not found)
+	_ = godotenv.Load()
+
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
