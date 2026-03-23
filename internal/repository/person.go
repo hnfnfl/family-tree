@@ -451,6 +451,18 @@ func nodeToPerson(node neo4j.Node) (*Person, error) {
 		return nil
 	}
 
+	// Neo4j datetime() returns time.Time directly
+	getTime := func(key string) time.Time {
+		switch v := props[key].(type) {
+		case time.Time:
+			return v
+		case neo4jtime.LocalDateTime:
+			return v.Time()
+		default:
+			return time.Time{}
+		}
+	}
+
 	person.ID = getString("id")
 	person.Name = getString("name")
 	person.Gender = getString("gender")
@@ -466,6 +478,8 @@ func nodeToPerson(node neo4j.Node) (*Person, error) {
 	person.AddressCountry = getOptionalString("addressCountry")
 	person.PhonePrimary = getOptionalString("phonePrimary")
 	person.PhonePrimaryType = getOptionalString("phonePrimaryType")
+	person.CreatedAt = getTime("createdAt")
+	person.UpdatedAt = getTime("updatedAt")
 
 	if v, ok := props["phoneVerified"].(bool); ok {
 		person.PhoneVerified = &v

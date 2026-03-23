@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j/dbtype"
 )
 
 type Family struct {
@@ -374,10 +375,23 @@ func nodeToFamily(node neo4j.Node) (*Family, error) {
 		return nil
 	}
 
+	getTime := func(key string) time.Time {
+		switch v := props[key].(type) {
+		case time.Time:
+			return v
+		case dbtype.LocalDateTime:
+			return v.Time()
+		default:
+			return time.Time{}
+		}
+	}
+
 	return &Family{
 		ID:          getString("id"),
 		Name:        getString("name"),
 		Description: getOptionalString("description"),
 		CreatedBy:   getString("createdBy"),
+		CreatedAt:   getTime("createdAt"),
+		UpdatedAt:   getTime("updatedAt"),
 	}, nil
 }

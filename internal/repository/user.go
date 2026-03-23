@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j/dbtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -302,6 +303,17 @@ func nodeToUser(node neo4j.Node) (*User, error) {
 		return false
 	}
 
+	getTime := func(key string) time.Time {
+		switch v := props[key].(type) {
+		case time.Time:
+			return v
+		case dbtype.LocalDateTime:
+			return v.Time()
+		default:
+			return time.Time{}
+		}
+	}
+
 	user.ID = getString("id")
 	user.Email = getString("email")
 	user.PasswordHash = getString("passwordHash")
@@ -309,6 +321,8 @@ func nodeToUser(node neo4j.Node) (*User, error) {
 	user.PersonID = getOptionalString("personId")
 	user.IsVerified = getBool("isVerified")
 	user.RefreshToken = getOptionalString("refreshToken")
+	user.CreatedAt = getTime("createdAt")
+	user.UpdatedAt = getTime("updatedAt")
 
 	return user, nil
 }
